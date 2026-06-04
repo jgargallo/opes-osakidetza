@@ -63,6 +63,21 @@ def is_negative(q):
     return any(x in w for x in ["no","falsa","incorrecta","incorrectas","excepto","salvo"])
 
 
+def letters_with_y(opts):
+    """letras cuya opción enumera con «y» (señal fuerte de respuesta correcta)."""
+    return [L for L, v in opts.items() if re.search(r"\by\b", F.norm(v))]
+
+
+def most_commas(opts):
+    """letra con estrictamente más comas (la más detallada), o None si empate."""
+    cnt = {L: v.count(",") for L, v in opts.items()}
+    m = max(cnt.values())
+    if m == 0:
+        return None
+    win = [L for L, v in cnt.items() if v == m]
+    return win[0] if len(win) == 1 else None
+
+
 def first_word(q):
     w = F.words(q["pregunta"])
     return w[0] if w else ""
@@ -92,6 +107,8 @@ for q in qs:
         "neg": is_negative(q),
         "cual": first_word(q) == "cual",
         "absLetters": abs_letters,
+        "optY": letters_with_y(opts),
+        "comas": most_commas(opts),
     })
 
 # estadísticas reales para la página de recursos

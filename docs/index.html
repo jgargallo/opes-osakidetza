@@ -30,14 +30,10 @@
     </div>
   </nav>
 
-  <!-- filtros compactos (solo modo estudiar) -->
+  <!-- filtro de tema (solo modo estudiar) -->
   <div id="filterBar" class="filter-bar">
-    <div class="container-xxl px-3 d-flex gap-2 align-items-center">
-      <select id="themeFilter" class="form-select form-select-sm flex-grow-1"></select>
-      <input type="checkbox" class="btn-check" id="onlyTraps" autocomplete="off">
-      <label class="btn btn-sm btn-outline-warning" for="onlyTraps">⚠️ Trampas</label>
-      <input type="checkbox" class="btn-check" id="onlyUnanswered" autocomplete="off">
-      <label class="btn btn-sm btn-outline-secondary" for="onlyUnanswered">Nuevas</label>
+    <div class="container-xxl px-3">
+      <select id="themeFilter" class="form-select form-select-sm"></select>
     </div>
   </div>
 
@@ -62,10 +58,6 @@
         <option value="100">100</option>
         <option value="300">300 (completo)</option>
       </select>
-      <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" id="examInstant" checked>
-        <label class="form-check-label" for="examInstant">Corregir cada pregunta al responder</label>
-      </div>
       <button id="startExam" class="btn btn-primary btn-lg w-100 fw-bold">Empezar examen</button>
     </div>
 
@@ -77,7 +69,6 @@
       </div>
       <div class="progress my-2" style="height:8px"><div id="examBar" class="progress-bar bg-primary" style="width:0%"></div></div>
       <div id="examCard"></div>
-      <button id="examNext" class="btn btn-primary btn-lg w-100 fw-bold mt-2 d-none">Siguiente ›</button>
     </div>
 
     <div id="examResult" class="d-none"></div>
@@ -96,6 +87,24 @@
       <span class="text-secondary small">/ <span id="qTotal">300</span></span>
     </div>
     <button id="nextBtn" class="btn btn-light flex-fill">Siguiente <i class="bi bi-chevron-right"></i></button>
+  </div>
+</div>
+
+<!-- ============ BARRA INFERIOR EXAMEN: Siguiente sticky ============ -->
+<div id="examNav" class="bottom-nav d-none">
+  <div class="container-xxl px-3">
+    <button id="examNext" class="btn btn-primary w-100 fw-bold" disabled>Siguiente ›</button>
+  </div>
+</div>
+
+<!-- ============ MODAL TIP (pista por pregunta) ============ -->
+<div id="tipModal" class="tip-overlay d-none">
+  <div class="tip-card">
+    <div class="tip-head">
+      <span>💡 Pista para esta pregunta</span>
+      <button id="tipClose" class="tip-close" aria-label="Cerrar">×</button>
+    </div>
+    <div id="tipBody"></div>
   </div>
 </div>
 

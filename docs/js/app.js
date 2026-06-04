@@ -21,21 +21,28 @@
     $("#progressLine").firstElementChild.style.width = (100 * Object.keys(progress).length / QA.length) + "%";
   }
 
-  /* ---------- chips ---------- */
-  function preChips(q) {
-    const c = [`<span class="chip tema">${esc(q.tema)}</span>`];
-    if (q.neg) c.push(`<span class="chip neg">⚠️ Negativa</span>`);
-    if (q.cual) c.push(`<span class="chip cual">¿Cuál…?</span>`);
-    if (q.meta) c.push(`<span class="chip meta">Tiene «todo/ninguna…»</span>`);
-    return c.join("");
+  /* ---------- chip: solo temática ---------- */
+  function preChips(q) { return `<span class="chip tema">${esc(q.tema)}</span>`; }
+
+  /* ---------- tip por-pregunta (modal, analiza ESTA pregunta) ---------- */
+  const U = s => s.toUpperCase();
+  function tipHtml(q) {
+    const b = [];
+    if (q.longest) b.push(`La opción más larga es la <b>${U(q.longest)}</b> — la correcta suele ser la más extensa.`);
+    if (q.optY && q.optY.length === 1) b.push(`Solo la opción <b>${U(q.optY[0])}</b> enumera con «y» (señal fuerte de correcta).`);
+    if (q.comas) b.push(`La opción <b>${U(q.comas)}</b> es la más detallada (más comas).`);
+    if (q.absLetters && q.absLetters.length) b.push(`Ojo: ${q.absLetters.map(U).join(", ")} usan «siempre/nunca/solo» → los absolutos suelen ser falsos, descártalos.`);
+    if (q.meta) b.push(`La opción <b>${U(q.meta)}</b> es del tipo «todo/ninguna de las anteriores».`);
+    if (q.cual) b.push(`Es una pregunta «¿Cuál…?»: en este examen tienden a la <b>C</b>.`);
+    if (!b.length) b.push(`Sin señales claras en esta pregunta.`);
+    return `<ul>${b.map(x => `<li>${x}</li>`).join("")}</ul>
+            <div class="tip-suggest">👉 Ante la duda, marca la <b>${U(q.heurPred)}</b>.</div>`;
   }
-  function afterChips(q) {
-    const c = [q.heurOk ? `<span class="chip ok">✅ La heurística acierta</span>`
-                        : `<span class="chip trap">⚠️ Trampa: la heurística falla</span>`];
-    if (q.correcta === q.longest) c.push(`<span class="chip info">La correcta era la más larga</span>`);
-    if (q.absLetters.includes(q.correcta)) c.push(`<span class="chip info">Excepción: tenía «siempre/solo/nunca»</span>`);
-    return c.join("");
-  }
+  const tipModal = $("#tipModal");
+  function openTip(q) { $("#tipBody").innerHTML = tipHtml(q); tipModal.classList.remove("d-none"); }
+  function closeTip() { tipModal.classList.add("d-none"); }
+  $("#tipClose").onclick = closeTip;
+  tipModal.addEventListener("click", e => { if (e.target === tipModal) closeTip(); });
 
   /* ---------- tarjeta reutilizable ---------- */
   function renderCard(q, opts) {
@@ -47,11 +54,8 @@
        <div class="qtext">${esc(q.pregunta)}</div>`;
 
     const hintBtn = el("button", "hint-btn", "💡 Ante la duda");
-    const hintBox = el("div", "hint-box d-none",
-      `Pista (no garantía): la opción <b>más larga sin «siempre/nunca/solo»</b> es la
-       <b>«${q.heurPred.toUpperCase()}»</b>. Esta regla acierta ~${META.stats.masLargaSinAbs}% de las veces.`);
-    hintBtn.onclick = () => hintBox.classList.toggle("d-none");
-    card.appendChild(hintBtn); card.appendChild(hintBox);
+    hintBtn.onclick = () => openTip(q);
+    card.appendChild(hintBtn);
 
     const optEls = {};
     LETTERS.forEach(L => {
@@ -65,7 +69,7 @@
     let locked = false;
     function reveal(picked) {
       locked = true;
-      hintBtn.classList.add("d-none"); hintBox.classList.add("d-none");
+      hintBtn.classList.add("d-none");
       LETTERS.forEach(L => {
         const o = optEls[L]; if (!o) return;
         o.classList.add("disabled");
@@ -78,7 +82,6 @@
       fbSlot.appendChild(el("div", "feedback " + (ok ? "good" : "bad"),
         ok ? `<b>¡Correcta!</b> Era la <b>${q.correcta.toUpperCase()}</b>.`
            : `<b>Incorrecta.</b> La correcta es la <b>${q.correcta.toUpperCase()}</b>.`));
-      fbSlot.appendChild(el("div", "tags-after", afterChips(q)));
     }
     function choose(L) {
       if (locked) return;
@@ -97,8 +100,8 @@
       themes.map(t => `<option value="${t}">${t} (${META.themes[t]})</option>`).join("");
   }
   function applyFilters() {
-    const theme = $("#themeFilter").value, traps = $("#onlyTraps").checked, un = $("#onlyUnanswered").checked;
-    studyList = QA.filter(q => (!theme || q.tema === theme) && (!traps || !q.heurOk) && (!un || !progress[q.num]));
+    const theme = $("#themeFilter").value;
+    studyList = QA.filter(q => !theme || q.tema === theme);
     if (!studyList.length) studyList = QA.slice();
     studyIdx = 0;
     $("#qTotal").textContent = studyList.length;
@@ -120,32 +123,33 @@
     if (isNaN(v)) v = 1; v = Math.max(1, Math.min(studyList.length, v));
     studyIdx = v - 1; renderStudy();
   };
-  ["#themeFilter", "#onlyTraps", "#onlyUnanswered"].forEach(s => $(s).onchange = applyFilters);
+  $("#themeFilter").onchange = applyFilters;
 
   /* ===================== EXAMEN ===================== */
   let exam = null;
   const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  function showExamNav(on) { $("#examNav").classList.toggle("d-none", !on); }
   $("#startExam").onclick = () => {
     const n = Math.min(parseInt($("#examLen").value, 10), QA.length);
-    exam = { list: shuffle(QA.slice()).slice(0, n), idx: 0, right: 0, wrong: 0, instant: $("#examInstant").checked, answers: [] };
+    exam = { list: shuffle(QA.slice()).slice(0, n), idx: 0, right: 0, wrong: 0, answers: [] };
     $("#examSetup").classList.add("d-none"); $("#examResult").classList.add("d-none");
     $("#examRun").classList.remove("d-none"); $("#exTotal").textContent = n;
+    $("#bottomNav").classList.add("d-none"); showExamNav(true);
     renderExam();
   };
-  $("#quitExam").onclick = () => { exam = null; $("#examRun").classList.add("d-none"); $("#examSetup").classList.remove("d-none"); };
+  $("#quitExam").onclick = () => { exam = null; showExamNav(false); $("#examRun").classList.add("d-none"); $("#examSetup").classList.remove("d-none"); };
   function renderExam() {
     const q = exam.list[exam.idx];
     $("#exPos").textContent = exam.idx + 1;
     $("#exRight").textContent = exam.right; $("#exWrong").textContent = exam.wrong;
     $("#examBar").style.width = (100 * exam.idx / exam.list.length) + "%";
     const slot = $("#examCard"); slot.innerHTML = "";
-    $("#examNext").classList.add("d-none");
+    $("#examNext").disabled = true;                       // se habilita al responder
     slot.appendChild(renderCard(q, {
       onAnswer: ok => {
         exam.answers.push({ num: q.num, ok }); if (ok) exam.right++; else exam.wrong++;
         $("#exRight").textContent = exam.right; $("#exWrong").textContent = exam.wrong;
-        if (exam.instant) $("#examNext").classList.remove("d-none");
-        else setTimeout(advance, 160);
+        $("#examNext").disabled = false;                  // siempre se corrige; habilita Siguiente
       }
     }));
     scrollMainTop();
@@ -153,6 +157,7 @@
   $("#examNext").onclick = advance;
   function advance() { exam.idx++; if (exam.idx >= exam.list.length) finish(); else renderExam(); }
   function finish() {
+    showExamNav(false);
     $("#examRun").classList.add("d-none");
     const total = exam.list.length, right = exam.right, pct = Math.round(100 * right / total);
     const wrongs = exam.answers.filter(a => !a.ok);
@@ -208,7 +213,7 @@
         <h3 class="h6 fw-bold">🧠 Cómo estudiar con esta web</h3>
         <ul class="ps-3 mb-0">
           <li class="my-2"><b>Estudiar:</b> navega las 300, responde y aprende los patrones. Filtra por tema.</li>
-          <li class="my-2"><b>⚠️ Trampas:</b> activa el filtro para repasar las <b>${META.heurFails.length}</b> preguntas donde la heurística falla — <b>memorízalas sí o sí</b>.</li>
+          <li class="my-2"><b>💡 Ante la duda:</b> en cada pregunta abre el tip para ver el análisis de sus opciones y la sugerencia.</li>
           <li class="my-2"><b>Examen:</b> simulacro aleatorio con nota final.</li>
           <li class="my-2">Tu progreso se guarda en el móvil.</li>
         </ul>
@@ -227,8 +232,15 @@
   function switchView(v) {
     $$(".menu-item").forEach(m => m.classList.toggle("active", m.dataset.view === v));
     Object.entries(views).forEach(([k, sel]) => $(sel).classList.toggle("d-none", k !== v));
-    $("#filterBar").style.display = (v === "study") ? "" : "none";
-    $("#bottomNav").style.display = (v === "study") ? "" : "none";
+    $("#filterBar").classList.toggle("d-none", v !== "study");
+    $("#bottomNav").classList.toggle("d-none", v !== "study");
+    showExamNav(false);
+    closeTip();
+    if (v === "exam") {                 // reinicia el examen a la pantalla de configuración
+      exam = null;
+      $("#examRun").classList.add("d-none"); $("#examResult").classList.add("d-none");
+      $("#examSetup").classList.remove("d-none");
+    }
     if (v === "res") renderResources();
     scrollMainTop();
   }
