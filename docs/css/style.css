@@ -5,11 +5,19 @@
   --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{ -webkit-tap-highlight-color:transparent }
+html,body{height:100%}
 body{
   font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   background:var(--soft); color:var(--ink);
-  padding-bottom:calc(78px + var(--safe-b));
+  /* App shell: header y footer fijos en el layout, solo #main scrollea.
+     100dvh evita los saltos de la barra de direcciones del móvil. */
+  display:flex; flex-direction:column;
+  height:100vh; height:100dvh;
+  overflow:hidden;
 }
+.app-header{flex:0 0 auto}
+main{flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch}
+.bottom-nav{flex:0 0 auto}
 .btn-primary{--bs-btn-bg:var(--teal);--bs-btn-border-color:var(--teal);
   --bs-btn-hover-bg:var(--teal-d);--bs-btn-hover-border-color:var(--teal-d);
   --bs-btn-active-bg:var(--teal-d);--bs-btn-active-border-color:var(--teal-d)}
@@ -93,7 +101,7 @@ table.strat td:last-child{text-align:right;font-weight:800;color:var(--teal-d)}
 .note{font-size:.82rem;color:#64748b;background:#f1f5f9;border-radius:12px;padding:.75rem;margin-top:.5rem}
 
 /* ---------- Barra inferior prev/next ---------- */
-.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1035;background:#fff;
+.bottom-nav{background:#fff;
   border-top:1px solid var(--line);box-shadow:0 -2px 14px rgba(15,42,43,.07);
   padding:.5rem 0 calc(.5rem + var(--safe-b))}
 .bottom-nav .btn-light{border:1px solid var(--line);font-weight:600;font-size:.88rem}

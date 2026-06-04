@@ -8,6 +8,8 @@
   const $$ = s => document.querySelectorAll(s);
   const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
   const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  const mainEl = document.querySelector("main");
+  const scrollMainTop = () => { try { mainEl.scrollTo({ top: 0 }); } catch (e) { mainEl.scrollTop = 0; } };
 
   /* ---------- progreso ---------- */
   const PKEY = "opos_progress_v1";
@@ -108,7 +110,7 @@
     $("#jumpInput").value = studyIdx + 1;
     const slot = $("#studyCard"); slot.innerHTML = "";
     slot.appendChild(renderCard(q, {}));
-    window.scrollTo({ top: 0, behavior: "instant" });
+    scrollMainTop();
   }
   function go(delta) { studyIdx = (studyIdx + delta + studyList.length) % studyList.length; renderStudy(); }
   $("#prevBtn").onclick = () => go(-1);
@@ -146,7 +148,7 @@
         else setTimeout(advance, 160);
       }
     }));
-    window.scrollTo({ top: 0, behavior: "instant" });
+    scrollMainTop();
   }
   $("#examNext").onclick = advance;
   function advance() { exam.idx++; if (exam.idx >= exam.list.length) finish(); else renderExam(); }
@@ -228,7 +230,7 @@
     $("#filterBar").style.display = (v === "study") ? "" : "none";
     $("#bottomNav").style.display = (v === "study") ? "" : "none";
     if (v === "res") renderResources();
-    window.scrollTo({ top: 0, behavior: "instant" });
+    scrollMainTop();
   }
   $$(".menu-item").forEach(m => m.addEventListener("click", () => switchView(m.dataset.view)));
 
