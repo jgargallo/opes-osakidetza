@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Artefactos de scraping / depuración (no deben versionarse)
+cookies.txt
+*.log
+page_*.html
+resp_*.html
+_*.html
+
+# Temporales del análisis
+/tmp/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.swp

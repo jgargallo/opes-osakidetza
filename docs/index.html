@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>OPE Osakidetza 2026 · Batería común 300</title>
+<meta name="description" content="Estudia las 300 preguntas de la batería común OPE Osakidetza 2026 con tips y heurísticas basadas en datos.">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ HEADER STICKY (navbar + filtros + progreso) ============ -->
+<header class="app-header sticky-top">
+  <nav class="navbar">
+    <div class="container-xxl px-3">
+      <span class="navbar-brand d-flex align-items-center gap-2 m-0">
+        <span class="brand-logo">🩺</span>
+        <span class="lh-1">
+          <strong class="d-block">OPE Osakidetza 2026</strong>
+          <small class="brand-sub">Batería común · 300 preguntas</small>
+        </span>
+      </span>
+      <button class="btn btn-burger" type="button" data-bs-toggle="offcanvas" data-bs-target="#menu" aria-label="Menú">
+        <i class="bi bi-list"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- filtros compactos (solo modo estudiar) -->
+  <div id="filterBar" class="filter-bar">
+    <div class="container-xxl px-3 d-flex gap-2 align-items-center">
+      <select id="themeFilter" class="form-select form-select-sm flex-grow-1"></select>
+      <input type="checkbox" class="btn-check" id="onlyTraps" autocomplete="off">
+      <label class="btn btn-sm btn-outline-warning" for="onlyTraps">⚠️ Trampas</label>
+      <input type="checkbox" class="btn-check" id="onlyUnanswered" autocomplete="off">
+      <label class="btn btn-sm btn-outline-secondary" for="onlyUnanswered">Nuevas</label>
+    </div>
+  </div>
+
+  <div id="progressLine" class="progress-line"><span></span></div>
+</header>
+
+<!-- ============ CONTENIDO ============ -->
+<main class="container-xxl px-3 pb-5">
+  <!-- ESTUDIAR -->
+  <section id="view-study" class="view"><div id="studyCard"></div></section>
+
+  <!-- EXAMEN -->
+  <section id="view-exam" class="view d-none">
+    <div id="examSetup" class="card-soft p-4 mt-3">
+      <h2 class="h4 fw-bold">📝 Simulacro de examen</h2>
+      <p class="text-secondary">Preguntas en orden aleatorio, feedback inmediato y nota final.</p>
+      <label class="form-label fw-semibold mt-2">¿Cuántas preguntas?</label>
+      <select id="examLen" class="form-select mb-3">
+        <option value="10">10 (rápido)</option>
+        <option value="25" selected>25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="300">300 (completo)</option>
+      </select>
+      <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="examInstant" checked>
+        <label class="form-check-label" for="examInstant">Corregir cada pregunta al responder</label>
+      </div>
+      <button id="startExam" class="btn btn-primary btn-lg w-100 fw-bold">Empezar examen</button>
+    </div>
+
+    <div id="examRun" class="d-none">
+      <div class="exam-head mt-3">
+        <span class="badge text-bg-light fs-6"><span id="exPos">1</span> / <span id="exTotal">25</span></span>
+        <span class="fw-bold">✅ <span id="exRight">0</span> · ❌ <span id="exWrong">0</span></span>
+        <button id="quitExam" class="btn btn-sm btn-outline-secondary">Salir</button>
+      </div>
+      <div class="progress my-2" style="height:8px"><div id="examBar" class="progress-bar bg-primary" style="width:0%"></div></div>
+      <div id="examCard"></div>
+      <button id="examNext" class="btn btn-primary btn-lg w-100 fw-bold mt-2 d-none">Siguiente ›</button>
+    </div>
+
+    <div id="examResult" class="d-none"></div>
+  </section>
+
+  <!-- RECURSOS -->
+  <section id="view-res" class="view d-none"><div id="resContent" class="mt-3"></div></section>
+</main>
+
+<!-- ============ BARRA NAV INFERIOR (solo estudiar): prev / salto / next ============ -->
+<div id="bottomNav" class="bottom-nav">
+  <div class="container-xxl px-3 d-flex align-items-center gap-2">
+    <button id="prevBtn" class="btn btn-light flex-fill"><i class="bi bi-chevron-left"></i> Anterior</button>
+    <div class="jump d-flex align-items-center gap-1">
+      <input id="jumpInput" type="number" min="1" class="form-control form-control-sm" value="1">
+      <span class="text-secondary small">/ <span id="qTotal">300</span></span>
+    </div>
+    <button id="nextBtn" class="btn btn-light flex-fill">Siguiente <i class="bi bi-chevron-right"></i></button>
+  </div>
+</div>
+
+<!-- ============ OFFCANVAS (burger) ============ -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="menu">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title fw-bold">Menú</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body d-flex flex-column">
+    <div class="menu-section-label">Modos</div>
+    <button class="menu-item active" data-view="study" data-bs-dismiss="offcanvas"><span>📖</span> Estudiar</button>
+    <button class="menu-item" data-view="exam" data-bs-dismiss="offcanvas"><span>📝</span> Examen</button>
+    <button class="menu-item" data-view="res" data-bs-dismiss="offcanvas"><span>💡</span> Recursos y tips</button>
+
+    <div class="menu-section-label mt-3">Tu progreso</div>
+    <div id="menuStats" class="px-1"></div>
+
+    <button id="resetProgress" class="btn btn-outline-danger btn-sm mt-2">Borrar progreso</button>
+    <div class="mt-auto pt-3 text-secondary small">
+      Respuestas orientativas (kaixo.com / foros), no oficiales.
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
