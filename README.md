@@ -229,6 +229,7 @@ python analyze.py real       # minado de reglas + Monte Carlo
 python focused.py            # hipótesis dirigidas
 python signals.py            # 23 señales + análisis de secuencia
 python combined2.py          # techo combinado (CV honesta)
+python tip_logic.py          # valida la lógica del tip (prior × longitud + gate)
 python build_site_data.py    # genera docs/data.js para la web
 ```
 
@@ -249,6 +250,7 @@ opos/
 ├── focused.py             # hipótesis pre-registradas
 ├── signals.py             # señales entre opciones + secuencia
 ├── combined.py/combined2.py  # modelo ML (CV honesta)
+├── tip_logic.py           # validación de la lógica del tip por-pregunta
 ├── build_site_data.py     # genera los datos de la web
 ├── qa.json / key.json     # datos generados
 └── docs/                  # web estática (GitHub Pages)

@@ -28,15 +28,25 @@
   const U = s => s.toUpperCase();
   function tipHtml(q) {
     const b = [];
-    if (q.longest) b.push(`La opción más larga es la <b>${U(q.longest)}</b> — la correcta suele ser la más extensa.`);
-    if (q.optY && q.optY.length === 1) b.push(`Solo la opción <b>${U(q.optY[0])}</b> enumera con «y» (señal fuerte de correcta).`);
-    if (q.comas) b.push(`La opción <b>${U(q.comas)}</b> es la más detallada (más comas).`);
-    if (q.absLetters && q.absLetters.length) b.push(`Ojo: ${q.absLetters.map(U).join(", ")} usan «siempre/nunca/solo» → los absolutos suelen ser falsos, descártalos.`);
-    if (q.meta) b.push(`La opción <b>${U(q.meta)}</b> es del tipo «todo/ninguna de las anteriores».`);
-    if (q.cual) b.push(`Es una pregunta «¿Cuál…?»: en este examen tienden a la <b>C</b>.`);
-    if (!b.length) b.push(`Sin señales claras en esta pregunta.`);
+    if (q.lenDom && q.longest)
+      b.push(`La opción <b>${U(q.longest)}</b> destaca por ser bastante más larga — buena señal.`);
+    else
+      b.push(`Las opciones miden parecido: aquí la longitud <b>no decide</b>.`);
+    if (q.optY && q.optY.length === 1)
+      b.push(`Solo la <b>${U(q.optY[0])}</b> enumera con «y» (señal fuerte de correcta).`);
+    if (q.comas && q.comas !== q.longest)
+      b.push(`La <b>${U(q.comas)}</b> es la más detallada (más comas).`);
+    if (q.absLetters && q.absLetters.length)
+      b.push(`Ojo: ${q.absLetters.map(U).join(", ")} usan «siempre/nunca/solo» → suelen ser falsas.`);
+    if (q.meta)
+      b.push(`La <b>${U(q.meta)}</b> es del tipo «todo/ninguna de las anteriores».`);
+
+    const t = q.tip, s = META.stats;
+    const sug = (t.mode === "one")
+      ? `👉 Apuesta por la <b>${U(t.letters[0])}</b>. <span class="tip-conf">(nombrar una así acierta ≈${s.tipOneAcc}%)</span>`
+      : `👉 Difícil de afinar: ve entre <b>${t.letters.map(U).join(" o ")}</b>, las dos más probables. <span class="tip-conf">(el par acierta ≈${s.tipPairAcc}%)</span>`;
     return `<ul>${b.map(x => `<li>${x}</li>`).join("")}</ul>
-            <div class="tip-suggest">👉 Ante la duda, marca la <b>${U(q.heurPred)}</b>.</div>`;
+            <div class="tip-suggest">${sug}</div>`;
   }
   const tipModal = $("#tipModal");
   function openTip(q) { $("#tipBody").innerHTML = tipHtml(q); tipModal.classList.remove("d-none"); }
@@ -181,9 +191,10 @@
     $("#resContent").innerHTML = `
       <div class="res-card golden">
         <h3 class="h5 fw-bold">🏆 La regla de oro ante la duda</h3>
-        <p class="mb-2">Si no te sabes la pregunta, elige la opción <b>más larga y detallada</b>
-        (enumera con «y», más comas y matices) y <b>descarta</b> las que digan
-        <b>«siempre / nunca / solo / todos»</b>. Evita la <b>«d»</b> salvo seguridad.</p>
+        <p class="mb-2">Si una opción es <b>claramente más larga y detallada</b> (enumera con «y»,
+        más comas) y no dice «siempre/nunca/solo», apuesta por ella. Si todas miden <b>parecido</b>,
+        la longitud no decide: tira del prior y apuesta entre <b>«b» o «c»</b> (juntas, el ${s.bc}%).
+        Evita la <b>«d»</b> salvo seguridad.</p>
         <div class="stat-grid">
           <div class="stat"><span class="big">${s.masLargaSinAbs}%</span><small>acierto con la regla</small></div>
           <div class="stat"><span class="big">${s.azar}%</span><small>azar puro</small></div>

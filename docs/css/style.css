@@ -89,6 +89,7 @@ main{flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:to
 #tipBody li{margin:.4rem 0;font-size:.93rem}
 .tip-suggest{margin-top:.8rem;background:#dcfce7;color:#15803d;border-radius:12px;
   padding:.7rem .85rem;font-weight:600}
+.tip-conf{display:block;font-weight:500;font-size:.78rem;opacity:.8;margin-top:.2rem}
 .feedback{border-radius:12px;padding:.7rem .85rem;font-size:.93rem;margin-top:.4rem}
 .feedback.good{background:#dcfce7;color:#15803d}
 .feedback.bad{background:#fee2e2;color:#b91c1c}

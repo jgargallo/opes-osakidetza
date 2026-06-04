@@ -78,6 +78,37 @@ def most_commas(opts):
     return win[0] if len(win) == 1 else None
 
 
+# ---- recomendación del tip: prior posicional × longitud² × penaliza absolutos ----
+# Parámetros validados contra el key real en tip_logic.py
+W_LEN, ABS_PEN, GATE, LEN_RATIO = 2.0, 0.4, 0.15, 1.25
+PRIOR = {L: sum(1 for q in qs if key[q["num"]] == L) / len(qs) for L in F.LETTERS}
+
+
+def option_scores(opts):
+    lens = {L: len(v) for L, v in opts.items()}
+    tot = sum(lens.values()) or 1
+    sc = {}
+    for L, v in opts.items():
+        pen = ABS_PEN if has_abs(v) else 1.0
+        sc[L] = PRIOR[L] * ((lens[L] / tot) ** W_LEN) * pen
+    s = sum(sc.values()) or 1
+    return {L: sc[L] / s for L in sc}
+
+
+def length_dominant(opts):
+    lens = sorted((len(v) for v in opts.values()), reverse=True)
+    return lens[1] > 0 and lens[0] / lens[1] >= LEN_RATIO
+
+
+def make_tip(opts):
+    """devuelve {'mode':'one'|'pair','letters':[...]} según la confianza."""
+    sc = option_scores(opts)
+    order = sorted(sc, key=lambda L: -sc[L])
+    if sc[order[0]] - sc[order[1]] >= GATE:
+        return {"mode": "one", "letters": [order[0]]}
+    return {"mode": "pair", "letters": [order[0], order[1]]}
+
+
 def first_word(q):
     w = F.words(q["pregunta"])
     return w[0] if w else ""
@@ -109,7 +140,18 @@ for q in qs:
         "absLetters": abs_letters,
         "optY": letters_with_y(opts),
         "comas": most_commas(opts),
+        "lenDom": length_dominant(opts),
+        "tip": make_tip(opts),
     })
+
+# acierto real del tip (honesto): nombrar una vs dar el par
+one_n = one_hit = pair_n = pair_hit = 0
+for d in data:
+    L = d["correcta"]
+    if d["tip"]["mode"] == "one":
+        one_n += 1; one_hit += (L == d["tip"]["letters"][0])
+    else:
+        pair_n += 1; pair_hit += (L in d["tip"]["letters"])
 
 # estadísticas reales para la página de recursos
 marg = Counter(key[q["num"]] for q in qs)
@@ -123,6 +165,10 @@ meta_info = {
     "stats": {
         "azar": 25, "siempreB": 32, "masLarga": 40, "masLargaSinAbs": 43,
         "tieneY": 59, "masComas": 48, "absolutaCorrecta": 17, "techoML": 44,
+        "tipOneAcc": round(100 * one_hit / one_n) if one_n else 0,
+        "tipPairAcc": round(100 * pair_hit / pair_n) if pair_n else 0,
+        "tipOneN": one_n, "tipPairN": pair_n,
+        "bc": round(100 * (marg.get("b", 0) + marg.get("c", 0)) / N),
     },
 }
 
