@@ -9,7 +9,7 @@
 > del azar), y un modelo de ML validado no sube de **~44 %**. No hay atajo para memorizar, pero sí
 > una heurística sólida para las preguntas que no te sepas.
 >
-> 🌐 **App de estudio:** _(publica `docs/` en GitHub Pages y pon aquí la URL)_
+> 🌐 **App de estudio:** **https://jgargallo.github.io/opes-osakidetza/**
 
 ---
 
